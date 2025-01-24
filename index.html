@@ -1,370 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Insitoo conseil</title>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f9f9f9;
-    }
-    h1 {
-      text-align: center;
-      margin: 20px 0;
-    }
-    #charts {
-      display: flex;
-      justify-content: space-around;
-      margin: 20px;
-    }
-    canvas {
-      width: 300px !important;
-      height: 300px !important;
-    }
-    table {
-      width: 90%;
-      margin: 20px auto;
-      border-collapse: collapse;
-      background: #fff;
-    }
-    table th, table td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      text-align: left;
-    }
-    table th {
-      background: #007bff;
-      color: white;
-    }
-    table td {
-      position: relative;
-    }
-    #form-container {
-      width: 90%;
-      margin: 20px auto;
-      padding: 20px;
-      background: #fff;
-      border: 1px solid #ddd;
-    }
-    input, select, textarea {
-      margin: 5px 0;
-      padding: 8px;
-      width: 100%;
-    }
-    button {
-      padding: 10px 20px;
-      background: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    #map {
-      height: 400px;
-      width: 90%;
-      margin: 20px auto;
-      border: 1px solid #ddd;
-    }
-    .action-icons {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-    }
-    .action-icons i {
-      cursor: pointer;
-      font-size: 18px;
-      color: #007bff;
-    }
-    .action-icons i:hover {
-      color: #0056b3;
-    }
-    .delete-icon {
-      color: #ff4d4d;
-    }
-    .delete-icon:hover {
-      color: #cc0000;
-    }
-    .edit-icon {
-      color: #007bff;
-    }
-    .edit-icon:hover {
-      color: #0056b3;
-    }
-    .save-icon {
-      color: #4CAF50;
-    }
-    .save-icon:hover {
-      color: #3D8B40;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marry Me</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #fce4ec;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+        }
+
+        #message {
+            font-size: 3em;
+            font-weight: bold;
+            color: #d81b60;
+            margin-top: 20vh;
+            z-index: 10;
+            position: relative;
+        }
+
+        .button-container {
+            margin-top: 20px;
+            z-index: 10;
+            position: relative;
+        }
+
+        .btn {
+            font-size: 1.5em;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .yes {
+            background-color: #43a047;
+            color: white;
+            z-index: 10;
+            position: relative;
+        }
+
+        .no {
+            background-color: #e53935;
+            color: white;
+            z-index: 10;
+            position: relative;
+        }
+
+        .image {
+    position: absolute;
+    transform: rotate(0deg);
+    transition: transform 0.5s ease;
+    width: 90px; /* Ajustez la largeur de l'image */
+    height: auto; /* Maintient les proportions */
+    z-index: 1;
+}
+
+        #fireworks {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            z-index: 1000;
+        }
+
+        #fireworks canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        #final-message {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            font-weight: bold;
+            color: #d81b60;
+            z-index: 1100;
+        }
+    </style>
 </head>
 <body>
-  <h1>Dashboard Insitoo conseil</h1>
+    <div id="message">Tzewjy bya ?</div>
+    <div class="button-container">
+        <button class="btn yes" onclick="handleYes()">Oui</button>
+        <button class="btn no" onclick="handleNo()" id="noBtn">Non</button>
+    </div>
 
+    <div id="fireworks"></div>
+    <div id="final-message"></div>
 
+    <script>
+        const images = [
+            './image.jpg',
+            './image.jpg',
+            './image.jpg',
+            './image.jpg',
+        ];
 
-  <!-- Graphiques -->
-  <div id="charts">
-    <canvas id="availabilityPieChart"></canvas>
-    <canvas id="expertiseBarChart"></canvas>
-  </div>
+        const body = document.body;
 
-  <!-- Carte de France -->
-  <div id="map"></div>
-
-  <!-- Formulaire d'ajout -->
-  <div id="form-container">
-    <h2>Ajouter un Freelance</h2>
-    <form id="freelanceForm">
-      <label>Prénom :</label>
-      <input type="text" id="prenom" required>
-      <label>Nom :</label>
-      <input type="text" id="nom" required>
-      <label>Localisation :</label>
-      <input type="text" id="localisation" required>
-      <label>Disponibilité :</label>
-      <select id="disponibilite">
-        <option value="Oui">Oui</option>
-        <option value="Non">Non</option>
-      </select>
-      <label>Expertise métier :</label>
-      <select id="expertise" multiple>
-        <option value="Achats">Achats</option>
-        <option value="Architechte DATA">Architechte DATA</option>
-        <option value="AUDIT">AUDIT</option>
-        <option value="chef de projet AMOA">Chef de projet AMOA</option>
-        <option value="Conseil commercial">Conseil commercial</option>
-        <option value="Conseil en communication">Conseil en communication</option>
-        <option value="Conseil en Marketing">Conseil en Marketing</option>
-        <option value="Conseil en Organisation et Stratégie">Conseil en Organisation et Stratégie</option>
-        <option value="Conseil RH">Conseil RH</option>
-        <option value="Conseil RSE">Conseil RSE</option>
-        <option value="COO">COO</option>
-        <option value="CTO">CTO</option>
-        <option value="Data Science">Data Science</option>
-        <option value="Développement">Développement</option>
-        <option value="Directeur de projet ERP">Directeur de projet ERP</option>
-        <option value="DSI">DSI</option>
-        <option value="Expert CSRD">Expert CSRD</option>
-        <option value="Facilitation">Facilitation</option>
-        <option value="Formation">Formation</option>
-        <option value="Gestion de la performance industrielle">Gestion de la performance industrielle</option>
-        <option value="Gestion financière">Gestion financière</option>
-        <option value="Missions à Impact">Missions à Impact</option>
-        <option value="Manager de projet de transformation">Manager de projet de transformation</option>
-        <option value="Management de transition">Management de transition</option>
-        <option value="Optimisation de process">Optimisation de process</option>
-        <option value="Responsable Marque">Responsable Marque</option>
-        <option value="Transformation digital">Transformation digital</option>
-        <option value="Use case couvert par l'IA">Use case couvert par l'IA</option>
-        
-        <option value="Autre">Autre</option>
-      </select>
-      <input type="text" id="otherExpertise" placeholder="Ajoutez une expertise..." style="display: none;">
-      <label>TJM :</label>
-      <input type="number" id="tjm">
-      <button type="submit">Ajouter</button>
-    </form>
-  </div>
-
-  <!-- Tableau des freelances -->
-  <table id="freelanceTable">
-    <thead>
-      <tr>
-        <th>Prénom</th>
-        <th>Nom</th>
-        <th>Localisation</th>
-        <th>Disponibilité</th>
-        <th>Expertise</th>
-        <th>TJM</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <script>
-    let freelancers = [];
-    const map = L.map('map').setView([46.603354, 1.888334], 6);
-    const markers = {};
-    let availabilityChart, expertiseChart;
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-    document.getElementById("expertise").addEventListener("change", (e) => {
-      const selectedOptions = Array.from(e.target.selectedOptions).map(o => o.value);
-      if (selectedOptions.includes("Autre")) {
-        document.getElementById("otherExpertise").style.display = "block";
-      } else {
-        document.getElementById("otherExpertise").style.display = "none";
-      }
-    });
-
-    document.getElementById("freelanceForm").onsubmit = (e) => {
-      e.preventDefault();
-
-      const expertiseSelect = document.getElementById("expertise");
-      const selectedExpertises = Array.from(expertiseSelect.selectedOptions).map(o => o.value);
-      const otherExpertise = document.getElementById("otherExpertise").value;
-      if (otherExpertise) {
-        selectedExpertises.push(otherExpertise);
-      }
-
-      const prenom = document.getElementById("prenom").value;
-      const nom = document.getElementById("nom").value;
-
-      const duplicate = freelancers.find((f) => f.prenom === prenom && f.nom === nom);
-      if (duplicate) {
-        alert("Freelance existant ! Veuillez le modifier directement dans le tableau ci-dessus.");
-        return;
-      }
-
-      const freelance = {
-        prenom: prenom,
-        nom: nom,
-        localisation: document.getElementById("localisation").value,
-        disponibilite: document.getElementById("disponibilite").value,
-        expertise: selectedExpertises.join(", "),
-        tjm: document.getElementById("tjm").value
-      };
-
-      freelancers.push(freelance);
-      updateTable();
-      e.target.reset();
-      document.getElementById("otherExpertise").style.display = "none";
-    };
-
-    function updateTable() {
-      const tbody = document.getElementById("freelanceTable").querySelector("tbody");
-      tbody.innerHTML = "";
-      freelancers.forEach((f, index) => {
-        const row = document.createElement("tr");
-        Object.keys(f).forEach((key) => {
-          const td = document.createElement("td");
-          td.textContent = f[key];
-          row.appendChild(td);
-        });
-        const actionTd = document.createElement("td");
-        actionTd.classList.add("action-icons");
-        actionTd.innerHTML = `
-          <i class="edit-icon" data-index="${index}">✏️</i>
-          <i class="delete-icon" data-index="${index}">🗑️</i>
-        `;
-        row.appendChild(actionTd);
-        tbody.appendChild(row);
-
-        const editButton = actionTd.querySelector(".edit-icon");
-        const deleteButton = actionTd.querySelector(".delete-icon");
-
-        editButton.onclick = () => toggleEdit(row, index, editButton);
-        deleteButton.onclick = () => deleteFreelance(index);
-      });
-      updateCharts();
-      updateMap();
-    }
-
-    function toggleEdit(row, index, button) {
-      const cells = row.querySelectorAll("td");
-      const isEditing = button.classList.contains("save-icon");
-
-      if (isEditing) {
-        // Save changes
-        Object.keys(freelancers[index]).forEach((key, i) => {
-          freelancers[index][key] = cells[i].textContent.trim();
-        });
-        button.textContent = "✏️";
-        button.classList.remove("save-icon");
-        button.classList.add("edit-icon");
-        updateTable();
-      } else {
-        // Enter edit mode
-        cells.forEach((cell, i) => {
-          if (i < Object.keys(freelancers[index]).length) {
-            cell.contentEditable = true;
-          }
-        });
-        button.textContent = "✅";
-        button.classList.add("save-icon");
-        button.classList.remove("edit-icon");
-      }
-    }
-
-    function deleteFreelance(index) {
-      freelancers.splice(index, 1);
-      updateTable();
-    }
-
-    function updateCharts() {
-      const availabilities = { Oui: 0, Non: 0 };
-      const expertises = {};
-
-      freelancers.forEach((f) => {
-        availabilities[f.disponibilite]++;
-        f.expertise.split(", ").forEach((exp) => {
-          expertises[exp] = (expertises[exp] || 0) + 1;
-        });
-      });
-
-      if (availabilityChart) availabilityChart.destroy();
-      if (expertiseChart) expertiseChart.destroy();
-
-      availabilityChart = new Chart(document.getElementById("availabilityPieChart"), {
-        type: "pie",
-        data: {
-          labels: ["Oui", "Non"],
-          datasets: [{
-            data: [availabilities.Oui, availabilities.Non],
-            backgroundColor: ["#4CAF50", "#FF5733"]
-          }]
-        }
-      });
-
-      expertiseChart = new Chart(document.getElementById("expertiseBarChart"), {
-        type: "bar",
-        data: {
-          labels: Object.keys(expertises),
-          datasets: [{
-            label: "Freelances par expertise",
-            data: Object.values(expertises),
-            backgroundColor: "#007bff"
-          }]
-        }
-      });
-    }
-
-    function updateMap() {
-      Object.keys(markers).forEach((key) => {
-        map.removeLayer(markers[key]);
-        delete markers[key];
-      });
-
-      const locationCounts = freelancers.reduce((counts, f) => {
-        counts[f.localisation] = (counts[f.localisation] || 0) + 1;
-        return counts;
-      }, {});
-
-      Object.keys(locationCounts).forEach((location) => {
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${location}`)
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.length > 0) {
-              const { lat, lon } = data[0];
-              markers[location] = L.marker([lat, lon])
-                .addTo(map)
-                .bindPopup(`${location}: ${locationCounts[location]} freelances`);
+        function createRandomImages() {
+            for (let i = 0; i < 20; i++) {
+                const img = document.createElement('img');
+                img.src = images[Math.floor(Math.random() * images.length)];
+                img.classList.add('image');
+                img.style.top = `${Math.random() * window.innerHeight}px`;
+                img.style.left = `${Math.random() * window.innerWidth}px`;
+                img.style.transform = `rotate(${Math.random() * 360}deg)`;
+                body.appendChild(img);
             }
-          });
-      });
+        }
+
+        createRandomImages();
+
+        let noClickCount = 0;
+
+        function handleYes() {
+            showFireworks("Congratulations! we are now married.");
+        }
+
+        function handleNo() {
+    const noBtn = document.getElementById('noBtn');
+    const btnWidth = noBtn.offsetWidth; // Largeur du bouton
+    const btnHeight = noBtn.offsetHeight; // Hauteur du bouton
+    const margin = 200; // Marge pour éviter les bords de l'écran
+
+    // Limiter la zone de mouvement au centre de la fenêtre
+    const maxX = window.innerWidth - btnWidth - margin; // Limite droite
+    const maxY = window.innerHeight - btnHeight - margin; // Limite basse
+    const minX = margin; // Limite gauche
+    const minY = margin; // Limite haute
+
+    // Calculer une nouvelle position aléatoire dans cette zone
+    const newX = Math.random() * (maxX - minX) + minX;
+    const newY = Math.random() * (maxY - minY) + minY;
+
+    // Appliquer les nouvelles positions au bouton
+    noBtn.style.position = 'absolute';
+    noBtn.style.top = `${newY}px`;
+    noBtn.style.left = `${newX}px`;
+
+    noClickCount++;
+
+    // Si cliqué 10 fois, afficher le message final
+    if (noClickCount >= 10) {
+        showFireworks("We are married now (bzez menek)");
     }
-  </script>
+}
+
+
+        function showFireworks(finalMessage) {
+            const fireworks = document.getElementById('fireworks');
+            const finalMsgDiv = document.getElementById('final-message');
+
+            finalMsgDiv.textContent = finalMessage;
+            finalMsgDiv.style.display = 'block';
+
+            fireworks.style.display = 'block';
+            const canvas = document.createElement('canvas');
+            fireworks.appendChild(canvas);
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+
+            function createParticle(x, y) {
+                for (let i = 0; i < 200; i++) {
+                    particles.push({
+                        x: x,
+                        y: y,
+                        angle: Math.random() * Math.PI * 2,
+                        speed: Math.random() * 7 + 3,
+                        radius: Math.random() * 3 + 2,
+                        alpha: 1,
+                    });
+                }
+            }
+
+            function drawParticles() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach((p, index) => {
+                    p.x += Math.cos(p.angle) * p.speed;
+                    p.y += Math.sin(p.angle) * p.speed;
+                    p.alpha -= 0.005;
+
+                    if (p.alpha <= 0) {
+                        particles.splice(index, 1);
+                    } else {
+                        ctx.fillStyle = `rgba(255, ${Math.random() * 255}, ${Math.random() * 255}, ${p.alpha})`;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+
+                if (particles.length > 0) {
+                    requestAnimationFrame(drawParticles);
+                } else {
+                    fireworks.style.display = 'none';
+                    fireworks.innerHTML = '';
+                    finalMsgDiv.style.display = 'none';
+                }
+            }
+
+            createParticle(window.innerWidth / 2, window.innerHeight / 2);
+            drawParticles();
+        }
+    </script>
 </body>
 </html>
